@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: psgr
+    environment:
+      - POSTGRES_DB=testdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dbnet
+    ports:
+      - "5432:5432"
+
+
+  web:
+    build: .
+    image: django-drf
+    container_name: django-drf
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
+    networks:
+      - dbnet
+    ports:
+      - "8000:8000"
+    links:
+      - "postgres:localhost"
+    environment:
+      - DB_HOST=postgres
+      - DB_NAME=testdb
+      - DB_USER=postgres
+      - DB_PASS=1234
+    depends_on:
+      - postgres
+
+
+networks:
+  dbnet:
+    driver: bridge
+
+volumes:
+  postgres_data:
